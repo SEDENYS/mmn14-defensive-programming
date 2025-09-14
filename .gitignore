@@ -1,0 +1,19 @@
+# IDE settings
+.idea/
+.vscode/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# C++ build artifacts
+*.o
+*.obj
+*.exe
+*.out
+*.log
+mmn14server
+
+# macOS metadata
+.DS_Store
