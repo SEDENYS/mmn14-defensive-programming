@@ -2,7 +2,6 @@
 import socket
 
 def send_request(ip, port, message):
-    """פותח חיבור לשרת, שולח הודעה, מחזיר תשובה"""
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             print(f"[CLIENT] Connecting to {ip}:{port}...")

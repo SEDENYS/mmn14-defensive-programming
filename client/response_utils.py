@@ -9,12 +9,13 @@ def parse_header(data):
     payload = data[9+name_len:9+name_len+size] if size > 0 else b""
 
     if version != 1:
+        # check the version
         print(f" Warning: unexpected version {version}, expected 1")
 
     return version, status, filename, size, payload
 
 
-# ===== BACKUP =====
+#  BACKUP
 def parse_backup_response(data: bytes) -> str:
     version, status, filename, size, payload = parse_header(data)
     if status == 210:
@@ -24,7 +25,7 @@ def parse_backup_response(data: bytes) -> str:
     else:
         return f"Unexpected status {status} for BACKUP"
 
-# ===== DELETE =====
+# DELETE
 def parse_delete_response(data: bytes) -> str:
     version, status, filename, size, payload = parse_header(data)
     if status == 211:
@@ -34,7 +35,7 @@ def parse_delete_response(data: bytes) -> str:
     else:
         return f"Unexpected status {status} for DELETE"
 
-# ===== LIST =====
+#  LIST
 def parse_list_response(data: bytes):
     version, status, filename, size, payload = parse_header(data)
     if status != 212:
@@ -51,7 +52,7 @@ def parse_list_response(data: bytes):
         files.append(name)
     return files
 
-# ===== RETRIEVE =====
+# RETRIEVE
 def parse_retrieve_response(data: bytes, filename: str) -> str:
     version, status, fname, size, payload = parse_header(data)
     if status == 212:

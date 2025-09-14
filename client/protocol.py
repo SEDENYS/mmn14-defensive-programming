@@ -2,9 +2,7 @@
 import struct
 
 def build_backup_request(user_id, filename):
-    """
-    יוצר בקשה בינארית לגיבוי קובץ לפי הפרוטוקול
-    """
+    # Creates a binary request to back up a file according to the protocol
     version = 1
     op_code = 100
 
@@ -25,18 +23,14 @@ def build_backup_request(user_id, filename):
     return header + payload
 
 def build_list_request(user_id, version=1):
-    """
-    בונה בקשה בינארית לבקשת רשימת קבצים מהשרת
-    """
+    # Builds a binary request to get the list of files from the server
     op_code = 202
-    name_len = 0  # אין קובץ
+    name_len = 0  # no file
     header = struct.pack("<IBBH", user_id, version, op_code, name_len)
-    return header  # אין filename, ואין payload
+    return header  # no filename, no payload
 
 def build_delete_request(user_id, filename, version=1):
-    """
-    בונה בקשה למחיקת קובץ מהשרת
-    """
+    # Builds a request to delete a file from the server
     op_code = 201
     file_bytes = filename.encode("ascii")
     name_len = len(file_bytes)
@@ -44,12 +38,10 @@ def build_delete_request(user_id, filename, version=1):
     header = struct.pack("<IBBH", user_id, version, op_code, name_len)
     header += file_bytes
 
-    return header  # אין size ואין תוכן
+    return header  # without size or content
 
 def build_retrieve_request(user_id, filename, version=1):
-    """
-    בונה בקשה לאחזור קובץ מהשרת
-    """
+    # Builds a request to retrieve a file from the server
     op_code = 200
     file_bytes = filename.encode("ascii")
     name_len = len(file_bytes)
