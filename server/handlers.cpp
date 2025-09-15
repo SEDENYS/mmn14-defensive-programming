@@ -1,4 +1,3 @@
-// ===== handlers.cpp =====
 #include "handlers.hpp"
 #include "protocol_utils.hpp"
 #include "file_utils.hpp"
@@ -7,12 +6,15 @@
 #include <vector>
 #include <cstring>
 #include <unistd.h>
-#include <arpa/inet.h>
 #include <mutex>
 #include <filesystem>
+#include <sys/types.h>
+#include <sys/socket.h>
+
 
 std::mutex log_mutex;
-// בדיקת גרסה - חלק מ-Defensive Programming
+
+// Check protocol version (Defensive Programming)
 void check_version(uint8_t version) {
     if (version != 1) {
         std::lock_guard<std::mutex> lock(log_mutex);
@@ -21,9 +23,9 @@ void check_version(uint8_t version) {
     }
 }
 
-// פונקציה אחידה לשליחת תשובה ללקוח
+// Unified function to send a response to the client
 void send_response(int client_fd, uint16_t status, const std::string &filename,
-                   const std::vector<uint8_t> &payload = {})
+                   const std::vector<uint8_t> &payload )
 {
     uint8_t version = 1;
     uint16_t name_len = filename.size();
@@ -65,6 +67,7 @@ void send_response(int client_fd, uint16_t status, const std::string &filename,
     send(client_fd, reply.data(), reply.size(), 0);
 }
 
+// Handle backup request (store file)
 void handle_backup(int client_fd, uint32_t user_id, const std::string &filename)
 {
     uint8_t szbuf[4];
@@ -92,7 +95,7 @@ void handle_backup(int client_fd, uint32_t user_id, const std::string &filename)
 
     if (size == 0)
     {
-        // מטלה יכולה להחליט אם זה נחשב כשלון או הצלחה. כאן נגדיר ככשלון.
+        // Task-specific decision: treat empty file as failure
         send_response(client_fd, 1001, filename);
         return;
     }
@@ -101,6 +104,7 @@ void handle_backup(int client_fd, uint32_t user_id, const std::string &filename)
     send_response(client_fd, 210, filename); // Backup OK
 }
 
+// Handle delete request (remove file)
 void handle_delete(int client_fd, uint32_t user_id, const std::string &filename)
 {
     std::string path = get_backup_path(user_id, filename);
@@ -108,6 +112,7 @@ void handle_delete(int client_fd, uint32_t user_id, const std::string &filename)
     send_response(client_fd, status, filename);
 }
 
+// Handle retrieve request (send file to client)
 void handle_retrieve(int client_fd, uint32_t user_id, const std::string &filename)
 {
     std::string path = get_backup_path(user_id, filename);
@@ -135,6 +140,7 @@ void handle_retrieve(int client_fd, uint32_t user_id, const std::string &filenam
     send_response(client_fd, 212, filename, payload);
 }
 
+// Handle list request (list all files for user)
 void handle_list(int client_fd, uint32_t user_id)
 {
     std::string dir = "backupsvr/" + std::to_string(user_id);
@@ -167,6 +173,7 @@ void handle_list(int client_fd, uint32_t user_id)
     send_response(client_fd, 212, "", payload);
 }
 
+// Handle one client: read header, dispatch operation, close connection
 void handle_client(int client_fd)
 {
     uint8_t header[8];
